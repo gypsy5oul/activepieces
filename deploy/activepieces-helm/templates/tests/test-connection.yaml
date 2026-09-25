@@ -7,18 +7,19 @@ metadata:
   annotations:
     "helm.sh/hook": test
 spec:
+  {{- with .Values.podSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   containers:
     - name: wget
       image: busybox
+      {{- /* Same security context as the app, so the test pod is admitted wherever
+      the app is (a restricted PSA namespace, an OpenShift SCC that assigns the UID). */}}
+      {{- with .Values.securityContext }}
       securityContext:
-        allowPrivilegeEscalation: false
-        runAsNonRoot: true
-        runAsUser: 65534
-        capabilities:
-          drop:
-            - ALL
-        seccompProfile:
-          type: RuntimeDefault
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       command: ['wget']
       args: ['-q', '-O', '/dev/null', '{{ include "activepieces.fullname" . }}:{{ .Values.service.port }}']
   restartPolicy: Never

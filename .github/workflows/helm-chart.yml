@@ -41,6 +41,7 @@ jobs:
           grep -q 'containerPort: 8080' "$RUNNER_TEMP/port.yaml"
           grep -A1 'name: AP_PORT' "$RUNNER_TEMP/port.yaml" | grep -q 'value: "8080"'
           test "$(helm template ap . --api-versions apps/v1/StatefulSet --set activepiecesConfig.AP_PORT=9000 | grep -c 'name: AP_PORT')" -eq 1
+          test "$(helm template ap . --api-versions apps/v1/StatefulSet --set 'activepiecesEnvVariables.my-port-secret[0]=AP_PORT' | grep -c 'name: AP_PORT')" -eq 1
           NOTES=$(helm install ap . --dry-run=client --set activepieces.frontendUrl=x)
           grep -q 'ignores these values' <<< "$NOTES"
           NOTES=$(helm install ap . --dry-run=client)
